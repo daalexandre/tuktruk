@@ -21,6 +21,13 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddTransient<ITrucksRepository, TrucksRepository>();
 builder.Services.AddTransient<IUnitOfWork, UnitOfWork>();
 
+builder.Services.AddTransient(provider =>
+{
+    var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
+    const string categoryName = "Any";
+    return loggerFactory.CreateLogger(categoryName);
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

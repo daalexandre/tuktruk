@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "KzUgJNXw9FLynICs+7oEWuROERwhIZNsoXVrlfX+SlQ=",
+  "Source": "TukTruk.Api",
+  "BasePath": "_content/TukTruk.Api",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}

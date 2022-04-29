@@ -1,34 +1,39 @@
 using System;
 using System.Threading.Tasks;
 using FluentAssertions;
+using FluentValidation;
+using FluentValidation.TestHelper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
 using TukTruk.Api.Controllers;
 using TukTruk.Api.Core.IConfiguration;
 using TukTruk.Api.Core.IRepositories;
+using TukTruk.Api.Enums;
 using TukTruk.Api.Models;
 using Xunit;
+
 
 namespace TukTruk.UniTests;
 
 public class TrucksControllerTests
 {
-
     private readonly Mock<ITrucksRepository> repositoryStub = new();
 
     private readonly Mock<IUnitOfWork> wowStub = new();
     private readonly Mock<ILogger<TrucksController>> loggerStub = new();
 
+    private readonly IValidator<Truck> truckValidator = new TruckValidator();
+
     private readonly Random rand = new();
 
     [Fact]
-    public async Task GetTruckAsync_TruckNotExists_ReturnsNotFound()
+    public async Task GetTruckAsync_Truck_Not_Exists_Returns_Not_Found()
     {
         repositoryStub.Setup(repo => repo.GetById(It.IsAny<Guid>()))
             .ReturnsAsync((Truck)null);
 
-        var controller = new TrucksController(repositoryStub.Object, wowStub.Object, loggerStub.Object);
+        var controller = GetTruckController();
 
         var result = await controller.GetTruckAsync(Guid.NewGuid());
 
@@ -36,7 +41,7 @@ public class TrucksControllerTests
     }
 
     [Fact]
-    public async Task GetTruckAsync_TruckExists_ReturnsExpectedTruck()
+    public async Task GetTruckAsync_TruckExists_Returns_Expected_Truck()
     {
         var expectedTruck = CreateRandomTruck();
         repositoryStub.Setup(repo => repo.GetById(It.IsAny<Guid>()))
@@ -51,7 +56,7 @@ public class TrucksControllerTests
     }
 
     [Fact]
-    public async Task GetTruckAsync_WithExistingTrucks_ReturnsAllTrucks()
+    public async Task GetTruckAsync_With_Existing_Trucks_Returns_All_Trucks()
     {
         var expectedTrucks = new[]{
             CreateRandomTruck(),
@@ -71,9 +76,8 @@ public class TrucksControllerTests
             options => options.ComparingByMembers<Truck>());
     }
 
-
     [Fact]
-    public async Task CreateTruckAsync_WithTruckObject_ReturnNewTruck()
+    public async Task CreateTruckAsync_With_Valid_Truck_Object_Return_New_Truck()
     {
 
         var truck = new Truck
@@ -81,7 +85,7 @@ public class TrucksControllerTests
             Id = Guid.NewGuid(),
             ManufacturingYear = 2022,
             ModelYear = 2022,
-            Model = 1
+            Model = TruckModelEnum.FM
         };
 
         var controller = GetTruckController();
@@ -96,20 +100,104 @@ public class TrucksControllerTests
         createdTruck?.Id.Should().NotBeEmpty();
     }
 
+    [Fact]
+    public async Task CreateTruckAsync_With_Invalid_Truck_Object_Return_Bad_Request()
+    {
+        var truck = new Truck
+        {
+            Id = Guid.NewGuid(),
+            ManufacturingYear = 2021,
+            ModelYear = 2022,
+            Model = TruckModelEnum.FM
+        };
+
+        var controller = GetTruckController();
+
+        var result = await controller.CreateTruckAsync(truck);
+
+        result?.Should().BeOfType<BadRequestObjectResult>();
+    }
+
+    [Fact]
+    public async Task UpdateTruckAsync_With_Existing_Truck_Returns_NoContent()
+    {
+        var existingTruck = CreateRandomTruck();
+
+        repositoryStub.Setup(repo => repo.GetById(It.IsAny<Guid>()))
+        .ReturnsAsync(existingTruck);
+
+        var controller = GetTruckController();
+        var truckId = existingTruck.Id;
+
+        var truckToUpdate = new Truck
+        {
+            Model = existingTruck.Model,
+            ManufacturingYear = existingTruck.ManufacturingYear,
+            ModelYear = DateTime.Now.Year + 1,
+        };
+
+        var result = await controller.UpdateTruckAsync((Guid)truckId, truckToUpdate);
+
+        result.Should().BeOfType<NoContentResult>();
+    }
+
+
+    // Model tests
+    [Fact]
+    public async Task Should_NOT_Have_When_Validating_Truck()
+    {
+        var truck = CreateRandomTruck();
+
+        var result = truckValidator.TestValidate(truck);
+        result.ShouldNotHaveAnyValidationErrors();
+    }
+
+    [Fact]
+    public async Task Should_Have_Error_When_MANUFACTURINGYEAR_Is_Lesser_Than_Current_Year()
+    {
+
+        var truck = new Truck
+        {
+            Id = Guid.NewGuid(),
+            ManufacturingYear = 2021,
+            ModelYear = 2022,
+            Model = TruckModelEnum.FM
+        };
+
+        var result = truckValidator.TestValidate(truck);
+        result.ShouldHaveValidationErrorFor(truck => truck.ManufacturingYear);
+    }
+
+    [Fact]
+    public async Task Should_Have_Error_When_MODELYAR_Is_Greater_Than_Subsequent_Year()
+    {
+        var truck = new Truck
+        {
+            Id = Guid.NewGuid(),
+            ManufacturingYear = 2022,
+            ModelYear = 2099,
+            Model = TruckModelEnum.FM
+        };
+
+        var result = truckValidator.TestValidate(truck);
+        result.ShouldHaveValidationErrorFor(truck => truck.ModelYear);
+    }
+
+
     private Truck CreateRandomTruck()
     {
-        var manufacturingYear = rand.Next(2022, 2030);
+        var manufacturingYear = DateTime.Now.Year;
         return new()
         {
             Id = Guid.NewGuid(),
             ManufacturingYear = manufacturingYear,
             ModelYear = rand.Next(manufacturingYear, manufacturingYear + 1),
-            Model = 1
+            Model = (TruckModelEnum)rand.Next((int)TruckModelEnum.FH, (int)TruckModelEnum.FM)
         };
     }
 
     private TrucksController GetTruckController()
     {
-        return new TrucksController(repositoryStub.Object, wowStub.Object, loggerStub.Object);
+        return new TrucksController(repositoryStub.Object, wowStub.Object, truckValidator);
     }
 }

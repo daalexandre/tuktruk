@@ -7,16 +7,13 @@ namespace TukTruk.Api.Core.Repositories
     public class GenericRepository<T> : IGenericRepository<T> where T : class
     {
         protected ApplicationDbContext _context;
-        protected readonly ILogger _logger;
         protected DbSet<T> dbSet;
 
         public GenericRepository(
-            ApplicationDbContext context,
-            ILogger logger
+            ApplicationDbContext context
         )
         {
             _context = context;
-            _logger = logger;
             dbSet = _context.Set<T>();
         }
 

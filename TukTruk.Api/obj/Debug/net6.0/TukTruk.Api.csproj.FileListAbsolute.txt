@@ -58,3 +58,7 @@
 /home/denisson/Work/dotnet/TukTruk/TukTruk.Api/obj/Debug/net6.0/ref/TukTruk.Api.dll
 /home/denisson/Work/dotnet/TukTruk/TukTruk.Api/obj/Debug/net6.0/TukTruk.Api.pdb
 /home/denisson/Work/dotnet/TukTruk/TukTruk.Api/obj/Debug/net6.0/TukTruk.Api.genruntimeconfig.cache
+/home/denisson/Work/dotnet/TukTruk/TukTruk.Api/bin/Debug/net6.0/FluentValidation.dll
+/home/denisson/Work/dotnet/TukTruk/TukTruk.Api/bin/Debug/net6.0/FluentValidation.AspNetCore.dll
+/home/denisson/Work/dotnet/TukTruk/TukTruk.Api/bin/Debug/net6.0/FluentValidation.DependencyInjectionExtensions.dll
+/home/denisson/Work/dotnet/TukTruk/TukTruk.Api/bin/Debug/net6.0/Newtonsoft.Json.dll

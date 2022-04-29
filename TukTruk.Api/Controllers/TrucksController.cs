@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using TukTruk.Api.Models;
 using TukTruk.Api.Core.IConfiguration;
 using TukTruk.Api.Core.IRepositories;
+using FluentValidation;
 
 namespace TukTruk.Api.Controllers
 {
@@ -9,20 +10,19 @@ namespace TukTruk.Api.Controllers
     [Route("trucks")]
     public class TrucksController : ControllerBase
     {
-        private readonly ILogger<TrucksController> _logger;
         private readonly ITrucksRepository _repository;
-
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IValidator<Truck> _truckValidator;
 
         public TrucksController(
             ITrucksRepository repository,
             IUnitOfWork unitOfWork,
-            ILogger<TrucksController> logger
+            IValidator<Truck> truckValidator
         )
         {
-            _logger = logger;
             _repository = repository;
             _unitOfWork = unitOfWork;
+            _truckValidator = truckValidator;
         }
 
         [HttpGet]
@@ -48,7 +48,9 @@ namespace TukTruk.Api.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateTruckAsync(Truck truck)
         {
-            if (ModelState.IsValid)
+            var validation = _truckValidator.Validate(truck);
+
+            if (validation.IsValid)
             {
                 truck.Id = Guid.NewGuid();
                 await _repository.Add(truck);
@@ -56,22 +58,28 @@ namespace TukTruk.Api.Controllers
 
                 return CreatedAtAction(nameof(GetTruckAsync), new { id = truck.Id.ToString() }, truck);
             }
-            return new JsonResult("Erro ao adicionar caminhão")
+            else
             {
-                StatusCode = StatusCodes.Status500InternalServerError
-            };
+                return BadRequest(validation.Errors);
+            }
         }
 
 
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateTruckAsync(Guid id, Truck truck)
         {
-            truck.Id = id;
+            var validation = _truckValidator.Validate(truck);
 
-            await _repository.Update(truck);
-            await _unitOfWork.CompleteAsync();
+            if (validation.IsValid)
+            {
+                truck.Id = id;
 
-            return NoContent();
+                await _repository.Update(truck);
+                await _unitOfWork.CompleteAsync();
+
+                return NoContent();
+            }
+            return BadRequest(validation.Errors);
         }
 
         [HttpDelete("{id}")]

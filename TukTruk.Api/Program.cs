@@ -4,6 +4,9 @@ using TukTruk.Api.Core.IRepositories;
 using TukTruk.Api.Core.Repositories;
 using TukTruk.Api.Core.IConfiguration;
 using TukTruk.Data;
+using FluentValidation.AspNetCore;
+using FluentValidation;
+using TukTruk.Api.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,12 +17,14 @@ builder.Services.AddDbContext<ApplicationDbContext>(
 );
 
 builder.Services.AddControllers();
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddTransient<ITrucksRepository, TrucksRepository>();
 builder.Services.AddTransient<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<IValidator<Truck>, TruckValidator>();
 
 builder.Services.AddTransient(provider =>
 {

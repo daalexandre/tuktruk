@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "awgoQy1m5WvYJtNqK6IFl6eNUwvml89c/QjHveErJ1zUOwClaodYb1ZFNUPLsxeQei0th1ThUtO4VwriZZjLeQ==",
+  "success": true,
+  "projectFilePath": "/home/denisson/Work/dotnet/TukTruk/build.proj",
+  "expectedPackageFiles": [
+    "/home/denisson/.nuget/packages/microsoft.netframework.referenceassemblies/1.0.2/microsoft.netframework.referenceassemblies.1.0.2.nupkg.sha512",
+    "/home/denisson/.nuget/packages/microsoft.netframework.referenceassemblies.net45/1.0.2/microsoft.netframework.referenceassemblies.net45.1.0.2.nupkg.sha512"
+  ],
+  "logs": []
+}

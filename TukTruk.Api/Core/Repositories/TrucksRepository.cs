@@ -8,68 +8,44 @@ namespace TukTruk.Api.Core.Repositories
     public class TrucksRepository : GenericRepository<Truck>, ITrucksRepository
     {
         public TrucksRepository(
-            ApplicationDbContext context,
-            ILogger logger
-        ) : base(context, logger)
+            ApplicationDbContext context
+        ) : base(context)
         {
 
         }
 
         public override async Task<IEnumerable<Truck>> All()
         {
-            try
-            {
-                return await dbSet.ToListAsync();
-            }
-            catch (System.Exception ex)
-            {
-
-                _logger.LogError(ex, $"[{nameof(TrucksRepository)}] -> {nameof(All)}");
-                return new List<Truck>();
-            }
+            return await dbSet.ToListAsync();
         }
 
         public override async Task<bool> Update(Truck entity)
         {
-            try
+
+            var existingTruck = await dbSet.Where(t => t.Id == entity.Id).FirstOrDefaultAsync();
+            if (existingTruck != null)
             {
-                var existingTruck = await dbSet.Where(t => t.Id == entity.Id).FirstOrDefaultAsync();
-                if (existingTruck != null)
-                {
-                    existingTruck.ManufacturingYear = entity.ManufacturingYear;
-                    existingTruck.ModelYear = entity.ModelYear;
-                    existingTruck.Model = entity.Model;
+                existingTruck.ManufacturingYear = entity.ManufacturingYear;
+                existingTruck.ModelYear = entity.ModelYear;
+                existingTruck.Model = entity.Model;
 
-                    dbSet.Update(existingTruck);
+                dbSet.Update(existingTruck);
 
-                }
-
-                return true;
             }
-            catch (System.Exception ex)
-            {
-                _logger.LogError(ex, $"[{nameof(TrucksRepository)}] -> {nameof(Update)}");
-                return false;
-            }
+
+            return true;
+
         }
 
         public override async Task<bool> Delete(Guid id)
         {
-            try
+            var existingTruck = await dbSet.Where(t => t.Id == id).FirstOrDefaultAsync();
+            if (existingTruck != null)
             {
-                var existingTruck = await dbSet.Where(t => t.Id == id).FirstOrDefaultAsync();
-                if (existingTruck != null)
-                {
-                    dbSet.Remove(existingTruck);
-                    return true;
-                }
-                return false;
+                dbSet.Remove(existingTruck);
+                return true;
             }
-            catch (System.Exception ex)
-            {
-                _logger.LogError(ex, $"[{nameof(TrucksRepository)}] -> {nameof(Delete)}");
-                return false;
-            }
+            return false;
         }
 
     }

@@ -7,6 +7,7 @@ using TukTruk.Data;
 using FluentValidation.AspNetCore;
 using FluentValidation;
 using TukTruk.Api.Models;
+using TukTruk.Api.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -45,6 +46,8 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
+
+app.UseMiddleware<ExceptionMiddleware>(app.Environment);
 
 app.MapControllers();
 
